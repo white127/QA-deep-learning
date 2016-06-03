@@ -21,5 +21,7 @@ word embedding is trained by word2vec toolkit
 =================run=====================
 
 reformat the original dataset(see my train and test1.sample)
+
 change filepath to your dataset(see TODO in insqa_cnn.py)
+
 python insqa_cnn.py
