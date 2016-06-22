@@ -1,10 +1,14 @@
 
 ================result==================
+
 结果和theano版本的差不多，具体数值忘了
+
 虽然代码里写了dropout，但是实际并没有使用，dropout对结果影响不是特别大，不用dropout的话训练速度要快一些。
 
 ================dataset================
+
 数据格式和theano版本的是一样的
+
 github上给出的是样本数据，如果需要全量的，也可直接联系我
 dataset is large, only test1 sample is given (see ./insuranceQA/test1.sample)
 
