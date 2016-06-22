@@ -24,3 +24,4 @@ word embedding is trained by word2vec toolkit
 
 我使用的是python3.4，部分代码可能会和python2不兼容，如使用python2需要自己做一些小修改，核心的CNN代码应该
 不用改动的
+代码里的数据路径是需要根据自己的环境修改的，核心的CNN代码无需改动
