@@ -19,6 +19,8 @@ you can get the original dataset from https://github.com/shuzi/insuranceQA
 word embedding is trained by word2vec toolkit
 
 =================run=====================
+
 ./insqa_train.py
+
 我使用的是python3.4，部分代码可能会和python2不兼容，如使用python2需要自己做一些小修改，核心的CNN代码应该
 不用改动的
