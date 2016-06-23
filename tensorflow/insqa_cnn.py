@@ -4,7 +4,7 @@ import numpy as np
 ##########################################################################
 #  embedding_lookup + cnn + cosine margine ,  batch
 ##########################################################################
-class InsQACNNv6(object):
+class InsQACNN(object):
     def __init__(
       self, sequence_length, batch_size,
       vocab_size, embedding_size,

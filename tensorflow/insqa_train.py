@@ -6,7 +6,7 @@ import os
 import time
 import datetime
 import insurance_qa_data_helpers
-from insqa_cnn_v6 import InsQACNNv6
+from insqa_cnn import InsQACNN
 import operator
 
 #print tf.__version__
@@ -66,7 +66,7 @@ with tf.Graph().as_default():
       log_device_placement=FLAGS.log_device_placement)
     sess = tf.Session(config=session_conf)
     with sess.as_default():
-        cnn = InsQACNNv6(
+        cnn = InsQACNN(
             sequence_length=x_train_1.shape[1],
             batch_size=FLAGS.batch_size,
             vocab_size=len(vocab),
