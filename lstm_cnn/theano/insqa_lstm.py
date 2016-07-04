@@ -5,6 +5,7 @@
 #   see https://github.com/Theano/Theano/issues/1772
 #
 # LSTM + cnn
+# test1 top-1 precision: 68.3%
 ############################################################
 
 from collections import OrderedDict
