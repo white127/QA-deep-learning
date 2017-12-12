@@ -1,3 +1,4 @@
+【insuranceQA-cnn-lstm README】
 See theano and tensorflow folder
 
 This is a CNN/LSTM model for Q&A(Question and Answering), include theano and tensorflow code implementation
@@ -12,3 +13,6 @@ word embedings + CNN + max pooling + cosine similarity
 LSTM+CNN的方法在insuranceQA的test1上的准确率为68%
 
 很多人都在问数据下载，这里有原始数据-https://github.com/shuzi/insuranceQA ，但是需要进行处理转换之后才能在这里的代码中使用
+
+【code of Text Classification】
+使用CNN和RNN进行文本分类的代码请移步这里 https://github.com/white127/TextClassification_CNN_RNN
