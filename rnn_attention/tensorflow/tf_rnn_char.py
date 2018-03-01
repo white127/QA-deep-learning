@@ -27,7 +27,7 @@ class RNN_Model(object):
         #mean_pooling以及取最后一个step的向量,效果都不好
         outputs = self._max_pooling(outputs)
         print outputs
-
+        
         #outputs = outputs[-1]
         #outputs = outputs * mask[:, :, None]
         #mean pooling
