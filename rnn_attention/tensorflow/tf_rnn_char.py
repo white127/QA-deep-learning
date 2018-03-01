@@ -9,13 +9,18 @@ class RNN_Model(object):
         _initial_state = fw_cell.zero_state(batch_size,dtype=tf.float32)
         inputs=tf.nn.embedding_lookup(embedding, inputs)
         inputs = tf.nn.dropout(inputs, self.keep_prob)
+        #[batch_size, sequence_length, embedding_size]转换为[sequence_length, batch_size, embedding_size]
         inputs = tf.transpose(inputs, [1, 0, 2])
+        #[sequence_length, batch_size, embedding_size]转换为list, sequence_length个[batch_size, embedding_size]
         inputs = tf.unstack(inputs)
         #inputs = tf.reshape(inputs, [-1, embed_dim])
         #inputs = tf.split(inputs, num_step, 0)
+        #输出为list, sequence_length个[batch_size, embedding_size * 2]
         outputs, _, _ = tf.contrib.rnn.static_bidirectional_rnn(fw_cell, bw_cell, inputs, initial_state_fw=_initial_state, initial_state_bw=_initial_state)
         outputs = tf.transpose(tf.stack(outputs), [1, 0, 2])
         self.outputs = outputs
+        #对rnn的输出[batch_size, sequence_length, embedding_size],目前采用maxpooling是最好的效果
+        #mean_pooling以及取最后一个step的向量,效果都不好
         outputs = self._max_pooling(outputs)
         print outputs
 
@@ -38,6 +43,7 @@ class RNN_Model(object):
         self.num_step=config.num_step
 
         self.qlist = tf.placeholder(tf.int32, [self.batch_size, self.num_step])
+        #这个版本没有使用mask
         self.mask_q = tf.placeholder(tf.float32, [self.num_step, self.batch_size])
         self.plist = tf.placeholder(tf.int32, [self.batch_size, self.num_step])
         self.mask_p = tf.placeholder(tf.float32, [self.num_step, self.batch_size])
