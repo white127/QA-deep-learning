@@ -1,6 +1,12 @@
 Insurance-QA deeplearning model
 ======
 This is a repo for Q&A Mathing, includes some deep learning models, such as CNN、RNN.<br>
+1. CNN. Basic CNN model from 《Applying Deep Learning To Answer Selection: A Study And An Open Task》<br>
+2. RNN. RNN seems the best model on Insurance-QA dataset.<br>
+3. SWEM. SWEM is the fastest, and has good effect on other datasets, such as TrecQA ..., but is seems not so good on Insurance-QA dataset<br>
+
+
+It's hard to say which model is the best in other datasets, you have to choose the most suitable model for your datasets.<br>
 More models are on the way, pay attention to the updates.<br>
 
 ## Requirements
