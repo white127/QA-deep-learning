@@ -6,10 +6,10 @@ Insurance-QA deeplearning model
 2. python3.5<br>
 
 ## Performance
- modelscore | top1_precision | AUC
+Model/Score | top1_precision
 ------------ | -------------
-CNN | 62% | NULL
-LSTM+CNN | 68% | NULL
+CNN | 62%
+LSTM+CNN | 68%
 
 【insuranceQA-cnn-lstm README】
 
