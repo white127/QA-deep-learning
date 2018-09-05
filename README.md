@@ -1,33 +1,41 @@
-【insuranceQA-cnn-lstm README】
+Insurance-QA deeplearning model
+======
+This is a repo for Q&A Mathing, includes some deep learning models, such as CNN、RNN.<br>
+More models are on the way, pay attention to the updates.<br>
 
-See theano and tensorflow folder
+## Requirements
+1. tensorflow 1.4.0<br>
+2. python3.5<br>
 
-This is a CNN/RNN model for Q&A(Question and Answering), include theano and tensorflow code implementation
+## Performance
+margin loss version<br>
 
-【insuranceQA准确率】
+Model/Score | top1_precision
+------------ | -------------
+CNN | 62%
+LSTM+CNN | 68%
 
-margin_loss  loss=
+logloss version<br>
 
-CNN+MaxPooling top1准确率 62% insuranceQA-cnn-lstm/cnn/tensorflow/ 
-AUC 0.50
+## Running
+Change configuration to your own environment, just like data pathes<br>
+    
+    vim config.py
 
-LSTM+CNN+MaxPooling top1准确率 68% insuranceQA-cnn-lstm/lstm_cnn/theano/
+Data processing<br>
+   
+    python3 gen.py
+    
+Run CNN model<br>
 
-GRU+MaxPooling top1准确率 59% insuranceQA-cnn-lstm/rnn_attention/tensorflow/
+    cd ./cnn/tensorflow && python3 insqa_train.py
+    
+It will take few hours(thousands of epoches) to train this model on a single GPU.<br>
+    
+## Others
+1. You can get Insurance-QA data from here https://github.com/shuzi/insuranceQA<br>
 
-logloss loss=-SUM(y*logp + (1-y)*log(1-p))
+## Links
+1. CNN and RNN textual classification  https://github.com/white127/TextClassification_CNN_RNN<br>
 
-SWEM_HIER AUC:0.949
 
-【insuranceQA数据说明】
-
-数据下载，原始数据-https://github.com/shuzi/insuranceQA ，需要进行处理转换之后才能在这里的代码中使用
-
-转换后的数据格式参照这里：
-https://github.com/white127/insuranceQA-cnn-lstm/tree/master/insuranceQA/test1.sample
-
-数据格式转换使用 gen.py(需要更改代码中的文件路径)，生成模型的输入文件
-
-【文本分类】
-
-使用CNN和RNN进行文本分类的代码请移步 https://github.com/white127/TextClassification_CNN_RNN
