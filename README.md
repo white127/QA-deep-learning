@@ -22,7 +22,7 @@ Change configuration to your own environment, just like data pathes<br>
     
     vim config.py
 
-Data processed<br>
+Data processing<br>
    
     python3 gen.py<br>
     
