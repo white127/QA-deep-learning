@@ -11,6 +11,11 @@ Model/Score | top1_precision
 CNN | 62%
 LSTM+CNN | 68%
 
+## Running
+    edit config.py for your own environment, just like data pathes<br>
+Data processed<br>
+    python3 gen.py<br>
+
 【insuranceQA-cnn-lstm README】
 
 See theano and tensorflow folder
