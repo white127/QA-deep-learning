@@ -3,9 +3,11 @@
 import tensorflow as tf
 import numpy as np
 import os, time, datetime, operator, sys
-from insqa_cnn2 import InsQACNN
+from insqa_cnn import InsQACNN
 sys.path.append('../../')
 import config, utils
+
+print(tf.__version__)
 
 # Parameters
 # ==================================================
