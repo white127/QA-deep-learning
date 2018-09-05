@@ -16,7 +16,7 @@ LSTM+CNN | 68%
 logloss version<br>
 
 ## Running
-Change configuration to yout environment, just like data pathes<br>
+Change configuration to your own environment, just like data pathes<br>
     
     vim config.py
 
