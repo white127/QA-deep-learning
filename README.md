@@ -28,6 +28,8 @@ Run CNN model<br>
 
     cd ./cnn/tensorflow && python3 insqa_train.py
     
+It will take few hours(thousands of epoches) to train this model on a single GPU.<br>
+    
 ## Others
 1. You can get Insurance-QA data from here https://github.com/shuzi/insuranceQA
 
