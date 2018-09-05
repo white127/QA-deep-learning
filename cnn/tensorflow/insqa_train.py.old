@@ -2,17 +2,19 @@
 
 import tensorflow as tf
 import numpy as np
-import os, time, datetime, operator, sys
-from insqa_cnn2 import InsQACNN
-sys.path.append('../../')
-import config, utils
+import os
+import time
+import datetime
+import insurance_qa_data_helpers
+from insqa_cnn import InsQACNN1
+import operator
+
+#print tf.__version__
 
 # Parameters
 # ==================================================
 
 # Model Hyperparameters
-tf.flags.DEFINE_float("margin", 0.05, "CNN model margin")
-tf.flags.DEFINE_integer("sequence_length", 200, "Max sequence lehgth(default: 200)")
 tf.flags.DEFINE_integer("embedding_dim", 100, "Dimensionality of character embedding (default: 128)")
 tf.flags.DEFINE_string("filter_sizes", "1,2,3,5", "Comma-separated filter sizes (default: '3,4,5')")
 tf.flags.DEFINE_integer("num_filters", 256, "Number of filters per filter size (default: 128)")
@@ -20,13 +22,14 @@ tf.flags.DEFINE_float("dropout_keep_prob", 1.0, "Dropout keep probability (defau
 tf.flags.DEFINE_float("l2_reg_lambda", 0, "L2 regularizaion lambda (default: 0.0)")
 
 # Training parameters
-tf.flags.DEFINE_integer("batch_size", 256, "Batch Size (default: 64)")
+tf.flags.DEFINE_integer("batch_size", 100, "Batch Size (default: 64)")
 tf.flags.DEFINE_integer("num_epochs", 5000000, "Number of training epochs (default: 200)")
-tf.flags.DEFINE_integer("evaluate_every", 3000, "Evaluate model on dev set after this many steps (default: 100)")
-tf.flags.DEFINE_integer("checkpoint_every", 3000, "Save model after this many steps (default: 100)")
+tf.flags.DEFINE_integer("evaluate_every", 5000, "Evaluate model on dev set after this many steps (default: 100)")
+tf.flags.DEFINE_integer("checkpoint_every", 5000, "Save model after this many steps (default: 100)")
 # Misc Parameters
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
+
 FLAGS = tf.flags.FLAGS
 FLAGS._parse_flags()
 print("\nParameters:")
@@ -39,15 +42,23 @@ print("")
 
 # Load data
 print("Loading data...")
-vocab, embeddings = utils.load_embeddings()
-train_data = utils.load_train_data(vocab, FLAGS.sequence_length)
-test_data = utils.load_test_data(vocab, FLAGS.sequence_length)
+
+vocab = insurance_qa_data_helpers.build_vocab()
+alist = insurance_qa_data_helpers.read_alist()
+raw = insurance_qa_data_helpers.read_raw()
+x_train_1, x_train_2, x_train_3 = insurance_qa_data_helpers.load_data_6(vocab, alist, raw, FLAGS.batch_size)
+testList, vectors = insurance_qa_data_helpers.load_test_and_vectors()
+vectors = ''
+print('x_train_1', np.shape(x_train_1))
 print("Load done...")
+
+val_file = '/export/jw/cnn/insuranceQA/test1'
+precision = '/export/jw/cnn/insuranceQA/test1.acc'
+#x_val, y_val = data_deepqa.load_data_val()
 
 # Training
 # ==================================================
 
-prev_auc = 0
 with tf.Graph().as_default():
   with tf.device("/gpu:1"):
     session_conf = tf.ConfigProto(
@@ -55,9 +66,8 @@ with tf.Graph().as_default():
       log_device_placement=FLAGS.log_device_placement)
     sess = tf.Session(config=session_conf)
     with sess.as_default():
-        cnn = InsQACNN(
-            _margin=FLAGS.margin,
-            sequence_length=FLAGS.sequence_length,
+        cnn = InsQACNN1(
+            sequence_length=x_train_1.shape[1],
             batch_size=FLAGS.batch_size,
             vocab_size=len(vocab),
             embedding_size=FLAGS.embedding_dim,
@@ -111,53 +121,78 @@ with tf.Graph().as_default():
         # Initialize all variables
         sess.run(tf.initialize_all_variables())
 
-        def train_step(q, qp, qn):
+        def train_step(x_batch_1, x_batch_2, x_batch_3):
+            """
+            A single training step
+            """
             feed_dict = {
-              cnn.q: q, cnn.qp: qp, cnn.qn: qn,
-              #cnn.input_x_1: q, cnn.input_x_2: qp, cnn.input_x_3: qn,
+              cnn.input_x_1: x_batch_1,
+              cnn.input_x_2: x_batch_2,
+              cnn.input_x_3: x_batch_3,
               cnn.dropout_keep_prob: FLAGS.dropout_keep_prob
             }
-            _, step, summaries, loss, accuracy, cos1, cos2 = sess.run(
-                [train_op, global_step, train_summary_op, cnn.loss, cnn.accuracy, cnn.cos_q_qp, cnn.cos_q_qn],
+            _, step, summaries, loss, accuracy = sess.run(
+                [train_op, global_step, train_summary_op, cnn.loss, cnn.accuracy],
                 feed_dict)
-            #print(cos1)
-            #print(cos2)
             time_str = datetime.datetime.now().isoformat()
             print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss, accuracy))
             train_summary_writer.add_summary(summaries, step)
 
-        def test_step():
-          yp, y, group, of = [], [], [], open(config.predict1_file, 'w')
-          for i in range(0, len(test_data), FLAGS.batch_size):
-              f, g, q1, q2 = utils.gen_test_batch_qpn(test_data, i, i+FLAGS.batch_size)
+        def dev_step():
+          scoreList = []
+          i = int(0)
+          while True:
+              x_test_1, x_test_2, x_test_3 = insurance_qa_data_helpers.load_data_val_6(testList, vocab, i, FLAGS.batch_size)
               feed_dict = {
-                cnn.q: q1, cnn.qp: q2, cnn.qn: q2,
-                #cnn.input_x_1: q1, cnn.input_x_2: q2, cnn.input_x_3: q2,
+                cnn.input_x_1: x_test_1,
+                cnn.input_x_2: x_test_2,
+                cnn.input_x_3: x_test_3,
                 cnn.dropout_keep_prob: 1.0
               }
-              cos = sess.run([cnn.cos_q_qp], feed_dict)
-              yp.extend(cos[0])
-              y.extend(f)
-              group.extend(g)
-          y, g, yp = y[:len(test_data)], group[:len(test_data)], yp[:len(test_data)]
-          auc = utils.eval_auc(y[:len(test_data)], g, yp[:len(test_data)])
-          top1_prec = utils._eval_top1_prec(y, g, yp)
-          for p in yp[:len(test_data)]: of.write(str(p) + '\n')
-          of.write(str(top1_prec) + '\n')
+              batch_scores = sess.run([cnn.cos_12], feed_dict)
+              for score in batch_scores[0]:
+                  scoreList.append(score)
+              i += FLAGS.batch_size
+              if i >= len(testList):
+                  break
+          sessdict = {}
+          index = int(0)
+          for line in open(val_file):
+              items = line.strip().split(' ')
+              qid = items[1].split(':')[1]
+              if not qid in sessdict:
+                  sessdict[qid] = []
+              sessdict[qid].append((scoreList[index], items[0]))
+              index += 1
+              if index >= len(testList):
+                  break
+          lev1 = float(0)
+          lev0 = float(0)
+          of = open(precision, 'a')
+          for k, v in sessdict.items():
+              v.sort(key=operator.itemgetter(0), reverse=True)
+              score, flag = v[0]
+              if flag == '1':
+                  lev1 += 1
+              if flag == '0':
+                  lev0 += 1
+          of.write('lev1:' + str(lev1) + '\n')
+          of.write('lev0:' + str(lev0) + '\n')
+          print('lev1 ' + str(lev1))
+          print('lev0 ' + str(lev0))
           of.close()
-          return auc
 
         # Generate batches
         # Training loop. For each batch...
         for i in range(FLAGS.num_epochs):
             try:
-                q, qp, qn = utils.gen_train_batch_qpn(train_data, FLAGS.batch_size)
-                train_step(q, qp, qn)
+                x_batch_1, x_batch_2, x_batch_3 = insurance_qa_data_helpers.load_data_6(vocab, alist, raw, FLAGS.batch_size)
+                train_step(x_batch_1, x_batch_2, x_batch_3)
                 current_step = tf.train.global_step(sess, global_step)
                 if current_step % FLAGS.evaluate_every == 0:
-                    auc = test_step()
-                    #if auc < prev_auc: break
-                    prev_auc = auc
+                    print("\nEvaluation:")
+                    dev_step()
+                    print("")
                 if current_step % FLAGS.checkpoint_every == 0:
                     path = saver.save(sess, checkpoint_prefix, global_step=current_step)
                     print("Saved model checkpoint to {}\n".format(path))

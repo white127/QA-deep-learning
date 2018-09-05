@@ -18,7 +18,7 @@ def build_vocab():
     code += 1
     for line in open('/export/jw/cnn/insuranceQA/train'):
         items = line.strip().split(' ')
-        for i in range(2, 3):
+        for i in range(2, 4):
             words = items[i].split('_')
             for word in words:
                 if not word in vocab:
@@ -26,7 +26,7 @@ def build_vocab():
                     code += 1
     for line in open('/export/jw/cnn/insuranceQA/test1'):
         items = line.strip().split(' ')
-        for i in range(2, 3):
+        for i in range(2, 4):
             words = items[i].split('_')
             for word in words:
                 if not word in vocab:

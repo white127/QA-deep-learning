@@ -6,11 +6,18 @@ This is a CNN/RNN model for Q&A(Question and Answering), include theano and tens
 
 【insuranceQA准确率】
 
-CNN+MaxPooling top1准确率 62% insuranceQA-cnn-lstm/cnn/tensorflow/
+margin_loss  loss=
+
+CNN+MaxPooling top1准确率 62% insuranceQA-cnn-lstm/cnn/tensorflow/ 
+AUC 0.50
 
 LSTM+CNN+MaxPooling top1准确率 68% insuranceQA-cnn-lstm/lstm_cnn/theano/
 
 GRU+MaxPooling top1准确率 59% insuranceQA-cnn-lstm/rnn_attention/tensorflow/
+
+logloss loss=-SUM(y*logp + (1-y)*log(1-p))
+
+SWEM_HIER AUC:0.949
 
 【insuranceQA数据说明】
 

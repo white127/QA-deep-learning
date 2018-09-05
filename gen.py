@@ -1,126 +1,87 @@
-#!/usr/bin/env python3.4
+import config, os
 
-import os
+#####################################################################
+# function: load vocab
+# return: dict[word] = [word_id]
+#####################################################################
+def load_vocab():
+  voc = {}
+  for line in open(config.vocab_file):
+    word, _id = line.strip().split('\t')
+    voc[word] = _id
+  return voc
 
-wordmap = {}
-for line in open('/export/jw/cnn/insuranceQA/insuranceQA-master/vocabulary'):
-    items = line.strip().split('\t')
-    wordmap[items[0]] = items[1]
-
-def word_trans(string):
-    newstr = string.replace('_', '-')
-    return newstr
-
-def align(string, length):
-    global wordmap
-    out = ''
-    words = string.strip().split(' ')
-    idx = int(0)
-    for i in range(0, length):
-        if i < len(words):
-            #out += (word_trans(words[i]) + '_')
-            out += (wordmap[words[i]] + '_')
-        else:
-            out += '<a>_'
-    return out
-
-def align_space(string):
-    out = ''
-    words = string.strip().split(' ')
-    for w in words:
-        #out += (word_trans(w) + ' ')
-        out += (wordmap[w] + ' ')
-    return out
-
+#####################################################################
+# function: load answers, restore idx to real word
+# return : [answer_1, answer_2, ..., answer_n]
+#####################################################################
 def load_answers():
-    #answer id begins from 1, not 0
-    ansList = []
-    ansList.append('<null>')
-    for line in open('/export/jw/cnn/insuranceQA/insuranceQA-master/answers.label.token_idx'):
-        items = line.strip().split('\t')
-        ansList.append(items[1])
-    return ansList
+  _list, voc = ['<None>'], load_vocab()
+  for line in open(config.answers_file):
+    _, sent = line.strip().split('\t')
+    _list.append('_'.join([voc[wid] for wid in sent.split(' ')]))
+  return _list
 
-def train():
-    ansList = load_answers()
-    w2v = '/export/jw/cnn/insuranceQA/w2v.train'
-    of = open('/export/jw/cnn/insuranceQA/train', 'w')
-    for line in open('/export/jw/cnn/insuranceQA/insuranceQA-master/question.train.token_idx.label'):
-        items = line.strip().split('\t')
-        ansidList = items[1].split(' ')
-        for ansid in ansidList:
-            of.write('1 qid:0 ')
-            of.write(align(items[0], 200) + ' ')
-            of.write(align(ansList[int(ansid)], 200) + '\n')
-    of.close()
-
+#####################################################################
+# function: preprea word2vec binary file
+# return : 
+#####################################################################
 def w2v():
-    ansList = load_answers()
-    of = open('/export/jw/cnn/insuranceQA/w2v.train', 'w')
-    for line in open('/export/jw/cnn/insuranceQA/insuranceQA-master/question.train.token_idx.label'):
-        items = line.strip().split('\t')
-        of.write(align_space(items[0]) + '\n')
-    for line in open('/export/jw/cnn/insuranceQA/insuranceQA-master/answers.label.token_idx'):
-        items = line.strip().split('\t')
-        of.write(align_space(items[1]) + '\n')
-    for line in open('/export/jw/cnn/insuranceQA/insuranceQA-master/question.dev.label.token_idx.pool'):
-        items = line.strip().split('\t')
-        of.write(align_space(items[1]) + '\n')
-    for line in open('/export/jw/cnn/insuranceQA/insuranceQA-master/question.test1.label.token_idx.pool'):
-        items = line.strip().split('\t')
-        of.write(align_space(items[1]) + '\n')
-    for line in open('/export/jw/cnn/insuranceQA/insuranceQA-master/question.test2.label.token_idx.pool'):
-        items = line.strip().split('\t')
-        of.write(align_space(items[1]) + '\n')
+  print('preparing word2vec ......')
+  _data, voc = [], load_vocab()
+  for line in open(config.question_train_file):
+    items = line.strip().split('\t')
+    _data.append(' '.join([voc[_id] for _id in items[0].split(' ')]))
+  for _file in [config.answers_file, config.question_dev_file, \
+          config.question_test1_file, config.question_test2_file]:
+    for line in open(_file):
+      items = line.strip().split('\t')
+      _data.append(' '.join([voc[_id] for _id in items[1].split(' ')]))
+  of = open(config.w2v_train_file, 'w')
+  for s in _data: of.write(s + '\n')
+  of.close()
+  os.system('time /export/jw/word2vec/word2vec -train ' + config.w2v_train_file + ' -output ' + config.w2v_bin_file + ' -cbow 0 -size 100 -window 5 -negative 20 -sample 1e-3 -threads 12 -binary 0 -min-count 1')
+
+#####################################################################
+# function: preprea train file
+# file format: flag question answer
+#####################################################################
+def train():
+  print('preparing train ......')
+  answers, voc, _data = load_answers(), load_vocab(), []
+  for line in open(config.question_train_file):
+    qsent, ids = line.strip().split('\t')
+    qsent = '_'.join([voc[wid] for wid in qsent.split(' ')])
+    for _id in ids.split(' '):
+      _data.append(' '.join(['1', qsent, answers[int(_id)]]))
+    of = open(config.train_file, 'w')
+  for _s in _data: of.write(_s + '\n')
+  of.close()
+
+#####################################################################
+# function: preprea test file
+# file format: flag group_id question answer
+#####################################################################
+def test():
+  print('preparing test ......')
+  answers, voc = load_answers(), load_vocab()
+  for _in, _out in ([(config.question_test2_file, config.test2_file), \
+          (config.question_test1_file, config.test1_file)]):
+    _data, group = [], int(0)
+    for line in open(_in):
+      pids, qsent, pnids = line.strip().split('\t')
+      positive = {_id:'#' for _id in pids.split(' ')}
+      qsent = '_'.join([voc[wid] for wid in qsent.split(' ')])
+      for _id in pnids.split(' '):
+        flag = '1' if _id in positive else '0'
+        _data.append(' '.join([flag, str(group), qsent, answers[int(_id)]]))
+      group += 1
+    of = open(_out, 'w')
+    for s in _data: of.write(s + '\n')
     of.close()
 
-def test1():
-    ansList = load_answers()
-    of = open('/export/jw/cnn/insuranceQA/test1', 'w')
-    qid = int(0)
-    for line in open('/export/jw/cnn/insuranceQA/insuranceQA-master/question.test1.label.token_idx.pool'):
-        items = line.strip().split('\t')
-        truthmap = {}
-        for tid in items[0].split(' '):
-            truthmap[tid] = '#'
-        quest = align(items[1], 200)
-        ansidList = items[2].split(' ')
-        for ansid in ansidList:
-            if ansid in truthmap:
-                of.write('1 ')
-            else:
-                of.write('0 ')
-            of.write('qid:' + str(qid) + ' ')
-            of.write(quest + ' ')
-            of.write(align(ansList[int(ansid)], 200) + '\n')
-        qid += 1
-    of.close()
-
-def test2():
-    ansList = load_answers()
-    of = open('/export/jw/cnn/insuranceQA/test2', 'w')
-    qid = int(0)
-    for line in open('/export/jw/cnn/insuranceQA/insuranceQA-master/question.test2.label.token_idx.pool'):
-        items = line.strip().split('\t')
-        truthmap = {}
-        for tid in items[0].split(' '):
-            truthmap[tid] = '#'
-        quest = align(items[1], 200)
-        ansidList = items[2].split(' ')
-        for ansid in ansidList:
-            if ansid in truthmap:
-                of.write('1 ')
-            else:
-                of.write('0 ')
-            of.write('qid:' + str(qid) + ' ')
-            of.write(quest + ' ')
-            of.write(align(ansList[int(ansid)], 200) + '\n')
-        qid += 1
-    of.close()
-
-if __name__  == '__main__':
-    w2v()
-    train()
-    test1()
-    test2()
+if __name__ == '__main__':
+  w2v()
+  train()
+  test()
 
