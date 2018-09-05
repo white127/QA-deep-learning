@@ -36,6 +36,6 @@ It will take few hours(thousands of epoches) to train this model on a single GPU
 1. You can get Insurance-QA data from here https://github.com/shuzi/insuranceQA<br>
 
 ## Links
-1. CNN and RNN textual classification  https://github.com/white127/TextClassification_CNN_RNN<br>
-
+1. CNN and RNN textual classification repo  https://github.com/white127/TextClassification_CNN_RNN<br>
+2. 《Applying Deep Learning To Answer Selection: A Study And An Open Task》<br>
 
