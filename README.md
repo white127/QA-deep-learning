@@ -1,6 +1,10 @@
 Insurance-QA deeplearning model
 ======
 
+#Requirements
+1. tensorflow 1.4.0<br>
+2. python3.5<br>
+
 【insuranceQA-cnn-lstm README】
 
 See theano and tensorflow folder
