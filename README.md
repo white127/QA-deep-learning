@@ -24,7 +24,7 @@ Change configuration to your own environment, just like data pathes<br>
 
 Data processing<br>
    
-    python3 gen.py<br>
+    python3 gen.py
     
 Run CNN model<br>
 
