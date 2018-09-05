@@ -6,10 +6,10 @@ Insurance-QA deeplearning model
 2. python3.5<br>
 
 ## Performance
-第一表头 | 第二表头
+ modelscore | top1_precision | AUC
 ------------ | -------------
-第一单元格内容 | 第二单元格内容
-第一列内容 | 第二列内容
+CNN | 62% | NULL
+LSTM+CNN | 68% | NULL
 
 【insuranceQA-cnn-lstm README】
 
