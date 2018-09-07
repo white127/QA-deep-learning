@@ -45,7 +45,7 @@ Run CNN model<br>
     
 It will take few hours(thousands of epoches) to train this model on a single GPU.<br>
     
-## Others
+## Downloads
 1. You can get Insurance-QA data from here https://github.com/shuzi/insuranceQA<br>
 2. You can get Quora data from here http://qim.ec.quoracdn.net/quora_duplicate_questions.tsv<br>
 
