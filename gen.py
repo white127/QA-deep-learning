@@ -1,4 +1,4 @@
-import config, os
+import config, os, random
 
 #####################################################################
 # function: load vocab
@@ -15,7 +15,7 @@ def load_vocab():
 # function: load answers, restore idx to real word
 # return : [answer_1, answer_2, ..., answer_n]
 #####################################################################
-def load_answers():
+def ins_load_answers():
   _list, voc = ['<None>'], load_vocab()
   for line in open(config.answers_file):
     _, sent = line.strip().split('\t')
@@ -26,7 +26,7 @@ def load_answers():
 # function: preprea word2vec binary file
 # return : 
 #####################################################################
-def w2v():
+def ins_w2v():
   print('preparing word2vec ......')
   _data, voc = [], load_vocab()
   for line in open(config.question_train_file):
@@ -40,21 +40,21 @@ def w2v():
   of = open(config.w2v_train_file, 'w')
   for s in _data: of.write(s + '\n')
   of.close()
-  os.system('time /export/jw/word2vec/word2vec -train ' + config.w2v_train_file + ' -output ' + config.w2v_bin_file + ' -cbow 0 -size 100 -window 5 -negative 20 -sample 1e-3 -threads 12 -binary 0 -min-count 1')
+  os.system('time ' + config.w2c_command + ' -train ' + config.w2v_train_file + ' -output ' + config.w2v_bin_file + ' -cbow 0 -size 100 -window 5 -negative 20 -sample 1e-3 -threads 12 -binary 0 -min-count 1')
 
 #####################################################################
 # function: preprea train file
 # file format: flag question answer
 #####################################################################
-def train():
+def ins_train():
   print('preparing train ......')
-  answers, voc, _data = load_answers(), load_vocab(), []
+  answers, voc, _data = ins_load_answers(), load_vocab(), []
   for line in open(config.question_train_file):
     qsent, ids = line.strip().split('\t')
     qsent = '_'.join([voc[wid] for wid in qsent.split(' ')])
     for _id in ids.split(' '):
       _data.append(' '.join(['1', qsent, answers[int(_id)]]))
-    of = open(config.train_file, 'w')
+  of = open(config.train_file, 'w')
   for _s in _data: of.write(_s + '\n')
   of.close()
 
@@ -62,9 +62,9 @@ def train():
 # function: preprea test file
 # file format: flag group_id question answer
 #####################################################################
-def test():
+def ins_test():
   print('preparing test ......')
-  answers, voc = load_answers(), load_vocab()
+  answers, voc = ins_load_answers(), load_vocab()
   for _in, _out in ([(config.question_test2_file, config.test2_file), \
           (config.question_test1_file, config.test1_file)]):
     _data, group = [], int(0)
@@ -80,8 +80,52 @@ def test():
     for s in _data: of.write(s + '\n')
     of.close()
 
-if __name__ == '__main__':
-  w2v()
-  train()
-  test()
+def ins_qa():
+  ins_w2v()
+  ins_train()
+  ins_test()
 
+def qur_prepare():
+  #pretrain word2vec
+  _list = []
+  for line in open(config.qr_file):
+    items = line.strip().split('\t')
+    if len(items) != 6:
+      continue
+    _list.append(items)
+  _list = _list[1:]
+  random.shuffle(_list)
+  _list = [(f, q1, q2) for _,_,_,q1,q2,f in _list]
+  of = open(config.w2v_train_file, 'w')
+  for f, q1, q2 in _list:
+    of.write(q1 + '\n')
+    of.write(q2 + '\n')
+  of.close()
+  os.system('time ' + config.w2v_command + ' -train ' + config.w2v_train_file + ' -output ' + config.w2v_bin_file + ' -cbow 0 -size 100 -window 5 -negative 20 -sample 1e-3 -threads 12 -binary 0 -min-count 1')
+  #train file
+  _newlist = []
+  for f, q1, q2 in _list:
+    if len(q1) <= 1 or len(q2) <= 1: continue
+    q1 = '_'.join(q1.split(' '))
+    q2 = '_'.join(q2.split(' '))
+    _newlist.append((f, q1, q2))
+  _list = _newlist
+  of = open(config.train_file, 'w')
+  for f, q1, q2 in _list[:int(len(_list) * 0.8)]:
+    of.write(' '.join([f, q1, q2]) + '\n')
+  of.close()
+
+  #test file
+  of = open(config.test1_file, 'w')
+  for f, q1, q2 in _list[int(len(_list) * 0.8):]:
+    of.write(' '.join([f, q1, q2]) + '\n')
+  of.close()
+
+def qur_qa():
+  qur_prepare()
+
+if __name__ == '__main__':
+  if config.dataset == config.dataset_ins:
+    ins_qa()
+  elif config.dataset == config.dataset_qur:
+    qur_qa()
