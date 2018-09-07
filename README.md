@@ -16,12 +16,19 @@ More models are on the way, pay attention to the updates.<br>
 ## Performance
 margin loss version<br>
 
-Model/Score | top1_precision
------------- | -------------
-CNN | 62%
-LSTM+CNN | 68%
+Model/Score | Ins_qa_top1_precision | quora_best_prec
+------------ | ------------- | -------------
+CNN | 62% | None
+LSTM+CNN | 68% | None
+SWEM | <55% | None
 
 logloss version<br>
+
+Model/Score | Insqa_top1_precision | quora_best_prec
+------------ | ------------- | -------------
+CNN | None | None
+LSTM+CNN | None | None
+SWEM | <40% | 82.69%
 
 ## Running
 Change configuration to your own environment, just like data pathes<br>
