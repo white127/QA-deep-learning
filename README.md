@@ -26,7 +26,7 @@ logloss version<br>
 
 Model/Score | Insqa_top1_precision | quora_best_prec
 ------------ | ------------- | -------------
-CNN | None | None
+CNN | None | 79.60%
 LSTM+CNN | None | None
 SWEM | <40% | 82.69%
 
